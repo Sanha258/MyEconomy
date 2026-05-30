@@ -1,0 +1,8 @@
+target/
+.mvn/
+.git/
+*.log
+*.md
+.DS_Store
+.idea/
+*.iml

@@ -1,0 +1,34 @@
+# Estágio 1: Build da aplicação
+FROM maven:3.9-eclipse-temurin-21 AS build
+
+WORKDIR /app
+
+# Copiar apenas o pom.xml primeiro (para cache de dependências)
+COPY pom.xml .
+
+# Baixar dependências
+RUN mvn dependency:go-offline -B
+
+# Copiar o código fonte
+COPY src ./src
+
+# Compilar a aplicação
+RUN mvn clean package -DskipTests
+
+# Estágio 2: Execução
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+# Copiar o JAR da aplicação do estágio de build
+COPY --from=build /app/target/*.jar app.jar
+
+# Criar usuário não-root para segurança
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+
+# Expor a porta da aplicação
+EXPOSE 8080
+
+# Comando para executar a aplicação
+ENTRYPOINT ["java", "-jar", "app.jar"]
