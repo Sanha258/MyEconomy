@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("api/auth")
 @RequiredArgsConstructor
 public class AuthController {
     
@@ -32,9 +32,6 @@ public class AuthController {
     
     @PostMapping("/signout")
     public ResponseEntity<Void> signOut() {
-        // For MVP, just return OK
-        // Frontend will remove the token
-        // Future implementation can add token blacklist with Redis
         return ResponseEntity.ok().build();
     }
 }
