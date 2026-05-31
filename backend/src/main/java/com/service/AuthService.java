@@ -31,45 +31,46 @@ public class AuthService {
     
     @Transactional
     public UserResponse signUp(SignUpRequest request) {
-        // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EmailExistsException("Email already registered: " + request.getEmail());
         }
         
-        // Encrypt password
         String encryptedPassword = passwordEncoder.encode(request.getPassword());
-        
-        // Create user entity
         User user = userMapper.toEntity(request, encryptedPassword);
-        
-        // Save to database
         User savedUser = userRepository.save(user);
-        
-        // Return response
         return userMapper.toResponse(savedUser);
     }
     
     @Transactional(readOnly = true)
     public AuthResponse signIn(SignInRequest request) {
         try {
-            // Authenticate user
+
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(
+                    request.getEmail(),
+                    request.getPassword()
+                )
             );
-            
-            // Generate JWT
+
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
             String token = jwtService.generateToken(userDetails);
-            
-            // Return token response
+
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() ->
+                            new InvalidCredentialsException("User not found"));
+
+            UserResponse userResponse = userMapper.toResponse(user);
+
             return AuthResponse.builder()
                     .accessToken(token)
                     .tokenType("Bearer")
                     .expiresIn(jwtService.getExpiration())
+                    .user(userResponse)
                     .build();
-                    
+
         } catch (Exception e) {
-            throw new InvalidCredentialsException("Invalid email or password");
+            throw new InvalidCredentialsException("email ou password invalido!");
         }
     }
 }

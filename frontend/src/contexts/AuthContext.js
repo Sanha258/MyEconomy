@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { authStorage } from '../storage/authStorage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../services/api';
 
 export const AuthContext = createContext({});
@@ -14,12 +14,12 @@ export const AuthProvider = ({ children }) => {
 
   const loadStoredData = async () => {
     try {
-      const storedToken = await authStorage.getToken();
-      const storedUser = await authStorage.getUser();
+      const storedToken = await AsyncStorage.getItem('@finance:token');
+      const storedUser = await AsyncStorage.getItem('@finance:user');
 
       if (storedToken && storedUser) {
         api.defaults.headers.Authorization = `Bearer ${storedToken}`;
-        setUser(storedUser);
+        setUser(JSON.parse(storedUser));
       }
     } catch (error) {
       console.error('Error loading stored data:', error);
@@ -29,21 +29,31 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signIn = async (token, userData) => {
-    await authStorage.setToken(token);
-    await authStorage.setUser(userData);
-    api.defaults.headers.Authorization = `Bearer ${token}`;
-    setUser(userData);
+    try {
+      await AsyncStorage.setItem('@finance:token', token);
+      await AsyncStorage.setItem('@finance:user', JSON.stringify(userData));
+      api.defaults.headers.Authorization = `Bearer ${token}`;
+      setUser(userData);
+    } catch (error) {
+      console.error('Error in signIn:', error);
+      throw error;
+    }
   };
 
   const signOut = async () => {
-    await authStorage.clearAll();
-    delete api.defaults.headers.Authorization;
-    setUser(null);
+    try {
+      await AsyncStorage.removeItem('@finance:token');
+      await AsyncStorage.removeItem('@finance:user');
+      delete api.defaults.headers.Authorization;
+      setUser(null);
+    } catch (error) {
+      console.error('Error in signOut:', error);
+    }
   };
 
   const updateUser = (userData) => {
     setUser(userData);
-    authStorage.setUser(userData);
+    AsyncStorage.setItem('@finance:user', JSON.stringify(userData));
   };
 
   return (

@@ -9,30 +9,36 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Input } from '../components/input';
 import { Button } from '../components/button';
 import { theme } from '../theme';
+import { cardShadow } from '../styles/shadow';
 import { signInSchema } from '../validators/signInValidator';
 import { authService } from '../services/authService';
 import { useAuth } from '../hooks/useAuth';
 
 export default function SignInScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
+  
+  // ✅ Apenas email pode vir do cadastro, senha SEMPRE vazia
+  const preFilledEmail = route.params?.email || '';
 
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(signInSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: preFilledEmail,
+      password: '',  
     },
   });
 
@@ -40,17 +46,24 @@ export default function SignInScreen() {
     try {
       setLoading(true);
       const response = await authService.signIn(data);
-      await signIn(response.token, response.user);
+      await signIn(response.accessToken,response.user);
     } catch (error) {
       console.error('SignIn error:', error);
       if (error.response?.status === 401) {
         Alert.alert('Erro', 'Email ou senha inválidos');
+      } else if (error.response?.status === 400) {
+        Alert.alert('Erro', error.response?.data?.message || 'Dados inválidos');
       } else {
         Alert.alert('Erro', 'Não foi possível fazer login. Tente novamente.');
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleNavigateToSignUp = () => {
+    const email = getValues('email');
+    navigation.navigate('SignUp', { email: email || '' });
   };
 
   return (
@@ -63,7 +76,7 @@ export default function SignInScreen() {
           <Text style={styles.title}>ENTRAR</Text>
         </View>
 
-        <View style={styles.form}>
+        <View style={[styles.form, cardShadow]}>
           <Controller
             control={control}
             name="email"
@@ -73,6 +86,7 @@ export default function SignInScreen() {
                 placeholder="seu@email.com"
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoCorrect={false}
                 value={value}
                 onChangeText={onChange}
                 error={errors.email?.message}
@@ -101,14 +115,12 @@ export default function SignInScreen() {
             loading={loading}
           />
 
-          <TouchableOpacity
-            style={styles.linkContainer}
-            onPress={() => navigation.navigate('SignUp')}
-          >
-            <Text style={styles.linkText}>
-              Não possui conta? Crie aqui
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.footerContainer}>
+            <Text style={styles.staticText}>Não possui conta? </Text>
+            <TouchableOpacity onPress={handleNavigateToSignUp}>
+              <Text style={styles.linkText}>Crie aqui</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -126,34 +138,32 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: theme.spacing.xl,
   },
   title: {
     ...theme.typography.h1,
     color: theme.colors.primary,
   },
-  subtitle: {
-    ...theme.typography.h1,
-    color: theme.colors.primaryDark,
-  },
   form: {
     backgroundColor: theme.colors.white,
     borderRadius: 12,
     padding: theme.spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  linkContainer: {
-    marginTop: theme.spacing.md,
+  footerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    marginTop: theme.spacing.md,
+    flexWrap: 'wrap',
+  },
+  staticText: {
+    ...theme.typography.body,
+    color: theme.colors.textLight,
   },
   linkText: {
     ...theme.typography.body,
     color: theme.colors.primary,
+    fontWeight: '600',
   },
 });

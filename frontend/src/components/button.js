@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { theme } from '../theme';
+import { cardShadow } from '../styles/shadow';
 
 export const Button = ({
   title,

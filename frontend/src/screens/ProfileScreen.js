@@ -11,11 +11,14 @@ import {
 import { Button } from '../components/button';
 import { Loading } from '../components/loading';
 import { theme } from '../theme';
+import { cardShadow } from '../styles/shadow';
 import { useAuth } from '../hooks/useAuth';
 import { userService } from '../services/userService';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ProfileScreen() {
+  const navigation = useNavigation(); // ← ADICIONAR ESTA LINHA
   const { user, signOut, updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,13 +45,23 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     Alert.alert(
       'Sair',
       'Tem certeza que deseja sair?',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Sair', style: 'destructive', onPress: signOut },
+        { 
+          text: 'Sair', 
+          style: 'destructive', 
+          onPress: async () => {
+            await signOut(); 
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'SignIn' }],
+            });
+          }
+        },
       ],
       { cancelable: true }
     );
@@ -59,22 +72,20 @@ export default function ProfileScreen() {
   }
 
   const displayData = profile || {
-    name: user?.name || 'João',
-    email: user?.email || 'joao@gmail.com',
-    birthDate: '09/12/1987',
+    name: user?.name || '',
+    email: user?.email || '',
+    birthDate: '',
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Header com ícone */}
         <View style={styles.header}>
           <Ionicons name="person-circle" size={80} color={theme.colors.primary} />
           <Text style={styles.headerTitle}>Profile</Text>
         </View>
 
-        {/* Card de Dados */}
-        <View style={styles.card}>
+        <View style={[styles.card, cardShadow]}>
           <Text style={styles.cardTitle}>Meus Dados</Text>
 
           <View style={styles.infoContainer}>
@@ -93,11 +104,10 @@ export default function ProfileScreen() {
 
           <View style={styles.infoContainer}>
             <Text style={styles.label}>Data de nascimento</Text>
-            <Text style={styles.value}>{displayData.birthDate}</Text>
+            <Text style={styles.value}>{displayData.birthDate || 'Não informada'}</Text>
           </View>
         </View>
 
-        {/* Botão Sair */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={24} color={theme.colors.error} />
           <Text style={styles.logoutText}>SAIR</Text>
@@ -132,11 +142,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   cardTitle: {
     ...theme.typography.h2,

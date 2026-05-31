@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { theme } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
+import { cardShadow } from '../styles/shadow';
 
 export const Input = ({
   label,
