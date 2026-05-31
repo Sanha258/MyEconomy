@@ -13,8 +13,6 @@ import com.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,33 +42,23 @@ public class AuthService {
     @Transactional(readOnly = true)
     public AuthResponse signIn(SignInRequest request) {
         try {
-
-            Authentication authentication = authenticationManager.authenticate(
+            authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     request.getEmail(),
                     request.getPassword()
                 )
             );
 
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
-            String token = jwtService.generateToken(userDetails);
-
-            User user = userRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() ->
-                            new InvalidCredentialsException("User not found"));
-
-            UserResponse userResponse = userMapper.toResponse(user);
+            String token = jwtService.generateToken(request.getEmail());
 
             return AuthResponse.builder()
                     .accessToken(token)
                     .tokenType("Bearer")
                     .expiresIn(jwtService.getExpiration())
-                    .user(userResponse)
                     .build();
 
         } catch (Exception e) {
-            throw new InvalidCredentialsException("email ou password invalido!");
+            throw new InvalidCredentialsException("Email ou senha inválidos!");
         }
     }
 }

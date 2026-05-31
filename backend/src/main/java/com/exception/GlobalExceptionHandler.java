@@ -66,7 +66,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
     
-    // NOVO: Handler para erro de validação de tipo (ex: @NotBlank em LocalDate)
     @ExceptionHandler(UnexpectedTypeException.class)
     public ResponseEntity<ErrorResponse> handleUnexpectedTypeException(UnexpectedTypeException ex) {
         String message = "Erro de validação nos dados enviados";

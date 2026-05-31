@@ -1,87 +1,58 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
-  Alert,
   ScrollView,
   TouchableOpacity,
+  Modal,
+  Platform,
+  Pressable,
 } from 'react-native';
-import { Button } from '../components/button';
 import { Loading } from '../components/loading';
 import { theme } from '../theme';
 import { cardShadow } from '../styles/shadow';
 import { useAuth } from '../hooks/useAuth';
-import { userService } from '../services/userService';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 
 export default function ProfileScreen() {
-  const navigation = useNavigation(); // ← ADICIONAR ESTA LINHA
-  const { user, signOut, updateUser } = useAuth();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, signOut } = useAuth();
+  const [modalVisible, setModalVisible] = useState(false);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
+  const handleLogout = async () => {
+    setModalVisible(false);
     try {
-      setLoading(true);
-      const data = await userService.getProfile();
-      setProfile(data);
-      updateUser({
-        id: data.id,
-        name: data.name,
-        email: data.email,
-      });
+      await signOut();
+      console.log('LOGOUT EXECUTADO');
     } catch (error) {
-      console.error('Error loading profile:', error);
-      Alert.alert('Erro', 'Não foi possível carregar os dados do perfil');
-    } finally {
-      setLoading(false);
+      console.error('ERRO NO LOGOUT:', error);
     }
   };
 
-  const handleLogout = async () => {
-    Alert.alert(
-      'Sair',
-      'Tem certeza que deseja sair?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Sair', 
-          style: 'destructive', 
-          onPress: async () => {
-            await signOut(); 
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'SignIn' }],
-            });
-          }
-        },
-      ],
-      { cancelable: true }
-    );
-  };
-
-  if (loading) {
+  if (!user) {
     return <Loading />;
   }
 
-  const displayData = profile || {
-    name: user?.name || '',
-    email: user?.email || '',
-    birthDate: '',
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Não informada';
+    if (dateString.includes('/')) return dateString;
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateString;
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <Ionicons name="person-circle" size={80} color={theme.colors.primary} />
+          <Ionicons
+            name="person-circle"
+            size={80}
+            color={theme.colors.primary}
+          />
           <Text style={styles.headerTitle}>Profile</Text>
         </View>
 
@@ -90,29 +61,80 @@ export default function ProfileScreen() {
 
           <View style={styles.infoContainer}>
             <Text style={styles.label}>Nome</Text>
-            <Text style={styles.value}>{displayData.name}</Text>
+            <Text style={styles.value}>{user.name || ''}</Text>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.infoContainer}>
             <Text style={styles.label}>Email</Text>
-            <Text style={styles.value}>{displayData.email}</Text>
+            <Text style={styles.value}>{user.email || ''}</Text>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.infoContainer}>
             <Text style={styles.label}>Data de nascimento</Text>
-            <Text style={styles.value}>{displayData.birthDate || 'Não informada'}</Text>
+            <Text style={styles.value}>
+              {formatDate(user.birthDate)}
+            </Text>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color={theme.colors.error} />
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={() => setModalVisible(true)}
+        >
+          <Ionicons
+            name="log-out-outline"
+            size={24}
+            color={theme.colors.error}
+          />
           <Text style={styles.logoutText}>SAIR</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Modal de Confirmação Moderno */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalIcon}>
+                <Ionicons name="log-out-outline" size={48} color={theme.colors.error} />
+              </View>
+              
+              <Text style={styles.modalTitle}>Sair da conta</Text>
+              <Text style={styles.modalMessage}>
+                Tem certeza que deseja sair? Você precisará fazer login novamente para acessar sua conta.
+              </Text>
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmButton]}
+                  onPress={handleLogout}
+                >
+                  <Text style={styles.confirmButtonText}>Sair</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -186,5 +208,88 @@ const styles = StyleSheet.create({
     ...theme.typography.button,
     color: theme.colors.error,
     marginLeft: theme.spacing.sm,
+  },
+ 
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '85%',
+    maxWidth: 340,
+  },
+  modalContent: {
+    backgroundColor: theme.colors.white,
+    borderRadius: 20,
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 4px 20px rgba(0,0,0,0.15)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 20,
+        elevation: 8,
+      },
+    }),
+  },
+  modalIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: `${theme.colors.error}15`,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  modalTitle: {
+    ...theme.typography.h2,
+    fontSize: 20,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    ...theme.typography.body,
+    color: theme.colors.textLight,
+    textAlign: 'center',
+    marginBottom: theme.spacing.lg,
+    lineHeight: 22,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButton: {
+    backgroundColor: theme.colors.background,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  confirmButton: {
+    backgroundColor: theme.colors.error,
+  },
+  cancelButtonText: {
+    ...theme.typography.button,
+    color: theme.colors.textLight,
+    fontWeight: '500',
+  },
+  confirmButtonText: {
+    ...theme.typography.button,
+    color: theme.colors.white,
+    fontWeight: '600',
   },
 });

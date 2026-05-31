@@ -8,10 +8,10 @@ import {
 } from 'react-native';
 import { theme } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
-import { cardShadow } from '../styles/shadow';
 
 export const Input = ({
   label,
+  required = false,
   error,
   secureTextEntry,
   style,
@@ -21,7 +21,13 @@ export const Input = ({
 
   return (
     <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && (
+        <Text style={styles.label}>
+          {label}
+          {required && <Text style={styles.required}> *</Text>}
+        </Text>
+      )}
+
       <View style={[styles.inputContainer, error && styles.inputError]}>
         <TextInput
           style={[styles.input, style]}
@@ -29,6 +35,7 @@ export const Input = ({
           secureTextEntry={secureTextEntry && !isPasswordVisible}
           {...props}
         />
+
         {secureTextEntry && (
           <TouchableOpacity
             onPress={() => setIsPasswordVisible(!isPasswordVisible)}
@@ -42,6 +49,7 @@ export const Input = ({
           </TouchableOpacity>
         )}
       </View>
+
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
@@ -51,12 +59,20 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: theme.spacing.md,
   },
+
   label: {
     ...theme.typography.caption,
     color: theme.colors.text,
     marginBottom: theme.spacing.xs,
     fontWeight: '500',
+    fontSize: 14,
   },
+
+  required: {
+    color: theme.colors.error,
+    fontWeight: 'bold',
+  },
+
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -65,20 +81,24 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: theme.colors.white,
   },
+
   input: {
     flex: 1,
     padding: theme.spacing.md,
     ...theme.typography.body,
     color: theme.colors.text,
   },
+
   inputError: {
     borderColor: theme.colors.error,
   },
+
   errorText: {
     ...theme.typography.caption,
     color: theme.colors.error,
     marginTop: theme.spacing.xs,
   },
+
   eyeIcon: {
     paddingRight: theme.spacing.md,
   },

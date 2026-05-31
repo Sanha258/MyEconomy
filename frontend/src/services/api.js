@@ -2,33 +2,31 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
+const SEU_IP = '192.168.2.108'; // ← SUBSTITUA PELO IP DO SEU COMPUTADOR
+
 const getApiUrl = () => {
-  // Web - usa localhost diretamente
+  // Web (navegador no computador)
   if (Platform.OS === 'web') {
     return 'http://localhost:8080';
   }
   
   // Android Emulator
-  if (Platform.OS === 'android') {
-    // 10.0.2.2 é o IP do host local para o emulador Android
+  if (Platform.OS === 'android' && !__DEV__ === false) {
     return 'http://10.0.2.2:8080';
   }
   
-  // iOS Emulator
-  if (Platform.OS === 'ios') {
-    return 'http://localhost:8080';
-  }
-  
-  return 'http://192.168.2.108:8080'; // ← SUBSTITUA PELO IP da SUA MÁQUINA NA REDE LOCAL PARA DISPOSITIVOS FÍSICOS
+  // 📱 DISPOSITIVO FÍSICO (Expo Go)
+  return `http://${SEU_IP}:8080`;
 };
 
 const API_URL = getApiUrl();
 
-console.log('🔧 API_URL configurada para:', API_URL, 'Plataforma:', Platform.OS);
+console.log('📱 Plataforma:', Platform.OS);
+console.log('🌐 API_URL:', API_URL);
 
 export const api = axios.create({
   baseURL: API_URL,
-  timeout: 15000,
+  timeout: 30000, 
   headers: {
     'Content-Type': 'application/json',
   },
@@ -40,36 +38,38 @@ api.interceptors.request.use(
       const token = await AsyncStorage.getItem('@finance:token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log(' Token adicionado à requisição:', config.url);
-      } else {
-        console.log(' Nenhum token encontrado para:', config.url);
+        console.log('Token adicionado:', config.url);
       }
     } catch (error) {
-      console.error(' Erro ao recuperar token:', error);
+      console.error('Erro ao recuperar token:', error);
     }
-    console.log('📤 API Request:', config.method?.toUpperCase(), config.url);
+    console.log('Request:', config.method?.toUpperCase(), config.url);
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 api.interceptors.response.use(
   (response) => {
-    console.log('📥 API Response:', response.status, response.config.url);
+    console.log('📥 Response:', response.status, response.config.url);
     return response;
   },
   (error) => {
-    console.error(' API Error:', error.message);
+    console.error('API Error:', error.message);
+    console.error('URL tentada:', error.config?.baseURL + error.config?.url);
+    
+    if (error.code === 'ERR_NETWORK') {
+      console.error(' NÃO FOI POSSÍVEL CONECTAR AO BACKEND!');
+      console.error(' VERIFIQUE:');
+      console.error(`   1. Backend está rodando? (Ver terminal do backend)`);
+      console.error(`   2. IP correto? Tentando: ${API_URL}`);
+      console.error(`   3. Celular e computador na mesma rede Wi-Fi?`);
+      console.error(`   4. Teste no navegador do celular: ${API_URL}/api/auth/signup`);
+    }
+    
     if (error.response?.status === 401) {
-      console.error('Token inválido ou expirado');
       AsyncStorage.removeItem('@finance:token');
       AsyncStorage.removeItem('@finance:user');
-    }
-    if (error.code === 'ERR_NETWORK') {
-      console.error('Backend não está rodando em:', API_URL);
-      console.error('Dica: Para dispositivo físico, use o IP da sua máquina na rede local');
     }
     return Promise.reject(error);
   }

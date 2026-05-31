@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
     
@@ -28,10 +28,5 @@ public class AuthController {
     public ResponseEntity<AuthResponse> signIn(@Valid @RequestBody SignInRequest request) {
         AuthResponse response = authService.signIn(request);
         return ResponseEntity.ok(response);
-    }
-    
-    @PostMapping("/signout")
-    public ResponseEntity<Void> signOut() {
-        return ResponseEntity.ok().build();
     }
 }

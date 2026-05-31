@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../services/api';
+import { userService } from '../services/userService';
 
 export const AuthContext = createContext({});
 
@@ -15,11 +16,10 @@ export const AuthProvider = ({ children }) => {
   const loadStoredData = async () => {
     try {
       const storedToken = await AsyncStorage.getItem('@finance:token');
-      const storedUser = await AsyncStorage.getItem('@finance:user');
-
-      if (storedToken && storedUser) {
+      
+      if (storedToken) {
         api.defaults.headers.Authorization = `Bearer ${storedToken}`;
-        setUser(JSON.parse(storedUser));
+        await loadUser();
       }
     } catch (error) {
       console.error('Error loading stored data:', error);
@@ -28,12 +28,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signIn = async (token, userData) => {
+  const loadUser = async () => {
+    try {
+      const profile = await userService.getProfile();
+      setUser(profile);
+      await AsyncStorage.setItem('@finance:user', JSON.stringify(profile));
+    } catch (error) {
+      console.error('Error loading user:', error);
+      await signOut();
+    }
+  };
+
+  const signIn = async (token) => {
     try {
       await AsyncStorage.setItem('@finance:token', token);
-      await AsyncStorage.setItem('@finance:user', JSON.stringify(userData));
       api.defaults.headers.Authorization = `Bearer ${token}`;
-      setUser(userData);
+      await loadUser(); 
     } catch (error) {
       console.error('Error in signIn:', error);
       throw error;
@@ -65,6 +75,7 @@ export const AuthProvider = ({ children }) => {
         signIn,
         signOut,
         updateUser,
+        loadUser,
       }}
     >
       {children}

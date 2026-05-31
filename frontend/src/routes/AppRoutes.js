@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
 
 import DashboardScreen from '../screens/DashboardScreen';
-import TransactionsScreen from '../screens/TransactionsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
@@ -18,8 +17,6 @@ export const AppRoutes = () => {
 
           if (route.name === 'Dashboard') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Transações') {
-            iconName = focused ? 'swap-horizontal' : 'swap-horizontal-outline';
           } else if (route.name === 'Perfil') {
             iconName = focused ? 'person-circle' : 'person-circle-outline';
           }
@@ -48,13 +45,6 @@ export const AppRoutes = () => {
         component={DashboardScreen}
         options={{
           title: 'Início',
-        }}
-      />
-      <Tab.Screen 
-        name="Transações" 
-        component={TransactionsScreen}
-        options={{
-          title: 'Transações',
         }}
       />
       <Tab.Screen 

@@ -30,7 +30,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Pular filtro para OPTIONS requests (preflight CORS)
         if (request.getMethod().equals("OPTIONS")) {
             filterChain.doFilter(request, response);
             return;
