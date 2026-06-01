@@ -3,7 +3,7 @@ import {
   Animated,
   StyleSheet,
   Text,
-  View,
+  Platform,
   StatusBar,
 } from 'react-native';
 
@@ -13,37 +13,46 @@ export const Toast = ({
   type = 'success',
   onHide,
 }) => {
-  const translateY = useRef(new Animated.Value(-120)).current;
+  const translateY = useRef(
+    new Animated.Value(-150)
+  ).current;
 
   useEffect(() => {
-    if (visible) {
+    if (!visible) return;
+
+    Animated.timing(translateY, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+
+    const timer = setTimeout(() => {
       Animated.timing(translateY, {
-        toValue: 0,
+        toValue: -150,
         duration: 300,
         useNativeDriver: false,
-      }).start();
+      }).start(() => {
+        onHide?.();
+      });
+    }, 3000);
 
-      const timer = setTimeout(() => {
-        Animated.timing(translateY, {
-          toValue: -120,
-          duration: 300,
-          useNativeDriver: false,
-        }).start(() => {
-          onHide?.();
-        });
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
+    return () => clearTimeout(timer);
   }, [visible]);
 
   if (!visible) return null;
 
+  const topPosition =
+    Platform.OS === 'web'
+      ? 20
+      : (StatusBar.currentHeight || 40) + 10;
+
   return (
     <Animated.View
+      pointerEvents="none"
       style={[
         styles.container,
         {
+          top: topPosition,
           backgroundColor:
             type === 'success'
               ? '#16A34A'
@@ -62,20 +71,20 @@ export const Toast = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: StatusBar.currentHeight || 40,
     left: 16,
     right: 16,
     zIndex: 9999,
-    padding: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderRadius: 12,
 
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
     elevation: 5,
   },
 
@@ -83,5 +92,6 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 15,
     fontWeight: '600',
+    textAlign: 'center',
   },
 });

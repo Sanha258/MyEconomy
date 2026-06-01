@@ -220,9 +220,6 @@ export default function SignUpScreen() {
             style={styles.linkContainer}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.linkText}>
-              Já possui conta? Entrar
-            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
