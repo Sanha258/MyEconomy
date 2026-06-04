@@ -48,16 +48,11 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <Ionicons
-            name="person-circle"
-            size={80}
-            color={theme.colors.primary}
-          />
-          <Text style={styles.headerTitle}>Profile</Text>
+          <Text style={styles.headerTitle}>Meus Dados</Text>
         </View>
 
         <View style={[styles.card, cardShadow]}>
-          <Text style={styles.cardTitle}>Meus Dados</Text>
+          <Text style={styles.cardTitle}>Informações da Conta</Text>
 
           <View style={styles.infoContainer}>
             <Text style={styles.label}>Nome</Text>
@@ -147,11 +142,11 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     padding: theme.spacing.lg,
+    justifyContent: 'center',
   },
   header: {
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
-    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   headerTitle: {
     ...theme.typography.h2,
@@ -164,6 +159,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
   },
   cardTitle: {
     ...theme.typography.h2,
@@ -203,6 +201,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.error,
     marginTop: theme.spacing.md,
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
   },
   logoutText: {
     ...theme.typography.button,
