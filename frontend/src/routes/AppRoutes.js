@@ -5,7 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
 
 import DashboardScreen from '../screens/DashboardScreen';
+import ExpenseScreen from '../screens/ExpenseScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -21,6 +23,10 @@ export const AppRoutes = () => {
             iconName = focused ? 'person' : 'person-outline';
           } else if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Despesas') {
+            iconName = focused ? 'add-circle' : 'add-circle-outline';
+          } else if (route.name === 'Configuracoes') {
+            iconName = focused ? 'settings' : 'settings-outline';
           }
 
           return (
@@ -53,6 +59,20 @@ export const AppRoutes = () => {
         component={DashboardScreen}
         options={{
           title: 'Home',
+        }}
+      />
+      <Tab.Screen
+        name="Despesas"
+        component={ExpenseScreen}
+        options={{
+          title: 'Despesas',
+        }}
+      />
+      <Tab.Screen
+        name="Configuracoes"
+        component={SettingsScreen}
+        options={{
+          title: 'Configurações',
         }}
       />
     </Tab.Navigator>

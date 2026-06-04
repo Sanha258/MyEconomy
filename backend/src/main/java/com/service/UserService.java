@@ -31,4 +31,10 @@ public class UserService {
                 .orElseThrow(() -> new UserException("User with email: " + email));
         return userMapper.toResponse(user);
     }
+
+    @Transactional(readOnly = true)
+    public User getEntityByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserException("User with email: " + email));
+    }
 }
