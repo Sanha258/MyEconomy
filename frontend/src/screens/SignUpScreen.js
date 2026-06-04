@@ -220,6 +220,7 @@ export default function SignUpScreen() {
             style={styles.linkContainer}
             onPress={() => navigation.goBack()}
           >
+            <Text style={styles.linkText}>Voltar</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
