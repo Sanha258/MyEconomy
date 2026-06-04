@@ -18,7 +18,6 @@ import { Button } from '../components/button';
 import { Toast } from '../components/Toast';
 
 import { theme } from '../theme';
-import { cardShadow } from '../styles/shadow';
 
 import { signInSchema } from '../validators/signInValidator';
 import { authService } from '../services/authService';
@@ -149,18 +148,11 @@ export default function SignInScreen() {
           styles.scrollContainer
         }
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>
-            ENTRAR
+        <View style={styles.form}>
+          <Text style={styles.headerTitle}>
+            Entrar
           </Text>
-        </View>
 
-        <View
-          style={[
-            styles.form,
-            cardShadow,
-          ]}
-        >
           <Controller
             control={control}
             name="email"
@@ -172,6 +164,7 @@ export default function SignInScreen() {
             }) => (
               <Input
                 label="Email"
+                required
                 placeholder="seu@email.com"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -196,6 +189,7 @@ export default function SignInScreen() {
             }) => (
               <Input
                 label="Senha"
+                required
                 placeholder="********"
                 secureTextEntry
                 value={value}
@@ -263,23 +257,37 @@ const styles =
         theme.spacing.lg,
     },
 
-    header: {
-      alignItems: 'center',
-      marginBottom:
-        theme.spacing.xl,
-    },
-
-    title: {
-      ...theme.typography.h1,
-      color:
-        theme.colors.primary,
-    },
-
     form: {
       backgroundColor:
         theme.colors.white,
       borderRadius: 12,
       padding:
+        theme.spacing.lg,
+
+      ...Platform.select({
+        web: {
+          boxShadow:
+            '0px 4px 12px rgba(0,0,0,0.10)',
+        },
+        default: {
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 4,
+        },
+      }),
+    },
+
+    headerTitle: {
+      ...theme.typography.h2,
+      color:
+        theme.colors.primary,
+      textAlign: 'center',
+      marginBottom:
         theme.spacing.lg,
     },
 
