@@ -42,7 +42,7 @@ export const Input = ({
             style={styles.eyeIcon}
           >
             <Ionicons
-              name={isPasswordVisible ? 'eye-off' : 'eye'}
+              name={isPasswordVisible ? 'eye' : 'eye-off'}
               size={24}
               color={theme.colors.textLight}
             />
