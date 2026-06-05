@@ -19,69 +19,14 @@ import { Toast } from '../components/Toast';
 import { expenseSchema } from '../validators/expenseValidator';
 import { expenseService } from '../services/expenseService';
 import { theme } from '../theme';
-
-const getCurrentMonthValue = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  return `${year}-${month}`;
-};
-
-const getMonthStartDate = (date) => new Date(date.getFullYear(), date.getMonth(), 1);
-
-const formatMonthLabel = (value) => {
-  if (!value) return '';
-
-  const [year, month] = value.split('-');
-  const date = new Date(Number(year), Number(month) - 1, 1);
-
-  return date.toLocaleDateString('pt-BR', {
-    month: 'long',
-    year: 'numeric',
-  }).replace(/^\w/, (character) => character.toUpperCase());
-};
-
-const generateMonthOptions = ({ pastMonths, futureMonths }) => {
-  const options = [];
-  const now = new Date();
-
-  for (let offset = -pastMonths; offset <= futureMonths; offset += 1) {
-    const date = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-    const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    options.push({
-      value,
-      label: formatMonthLabel(value),
-    });
-  }
-
-  return options;
-};
-
-const normalizeAmount = (value) => {
-  if (value.includes(',')) {
-    return value.replace(/\./g, '').replace(',', '.');
-  }
-
-  return value;
-};
-
-const parseAmountToApi = (value) => {
-  const normalizedValue = normalizeAmount(value);
-  return Number(normalizedValue);
-};
-
-const formatAmountToInput = (value) => {
-  if (value === null || value === undefined) return '';
-  return String(value).replace('.', ',');
-};
-
-const formatCurrency = (value) => {
-  const amount = Number(value || 0);
-  return amount.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
-};
+import {
+  formatAmountToInput,
+  formatCurrency,
+  generateMonthOptions,
+  getCurrentMonthValue,
+  isPreviousMonth,
+  parseAmountToApi,
+} from '../utils/monthlyFinance';
 
 const MOCK_LOCKED_EXPENSES = {
   '2026-05': [
@@ -93,13 +38,6 @@ const MOCK_LOCKED_EXPENSES = {
       isMock: true,
     },
   ],
-};
-
-const isPreviousMonth = (referenceMonth) => {
-  const [year, month] = referenceMonth.split('-');
-  const selectedDate = new Date(Number(year), Number(month) - 1, 1);
-  const currentDate = getMonthStartDate(new Date());
-  return selectedDate < currentDate;
 };
 
 export default function ExpenseScreen() {
@@ -195,8 +133,13 @@ export default function ExpenseScreen() {
         showToast('Despesa cadastrada com sucesso!');
       }
 
+      const shouldReloadImmediately = selectedHistoryMonth === payload.referenceMonth;
       setSelectedHistoryMonth(payload.referenceMonth);
-      await loadExpenses(payload.referenceMonth);
+
+      if (shouldReloadImmediately) {
+        await loadExpenses(payload.referenceMonth);
+      }
+
       clearForm();
     } catch (error) {
       showToast(

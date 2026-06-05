@@ -1,8 +1,7 @@
 import * as yup from 'yup';
 import { isValidAmount } from '../utils/monthlyFinance';
 
-export const expenseSchema = yup.object().shape({
-  description: yup.string().required('Descrição obrigatória').trim(),
+export const limitSchema = yup.object().shape({
   amount: yup
     .string()
     .required('Valor obrigatório')
