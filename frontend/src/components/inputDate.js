@@ -138,6 +138,9 @@ export const InputDate = ({
     }
   };
 
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
   return (
     <View style={styles.container}>
       {label && (
@@ -181,6 +184,7 @@ export const InputDate = ({
         <DateTimePicker
           value={tempDate}
           mode="date"
+          maximumDate={yesterday}
           display="default"
           onChange={handleAndroidChange}
         />
@@ -216,6 +220,7 @@ export const InputDate = ({
               <DateTimePicker
                 value={tempDate}
                 mode="date"
+                maximumDate={yesterday}
                 display="spinner"
                 onChange={(event, date) =>
                   date && setTempDate(date)

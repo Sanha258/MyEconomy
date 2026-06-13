@@ -31,8 +31,8 @@ public class SignUpRequest {
     
     @NotNull(message = "Data de nascimento é obrigatória")
     @JsonFormat(pattern = "yyyy-MM-dd")
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    @Past(message = "Data de nascimento deve ser no passado")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  
+    @Past(message = "Data de nascimento deve ser anterior à data atual")
     private LocalDate birthDate;
     
     @NotBlank(message = "Senha é obrigatória")
